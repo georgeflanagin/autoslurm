@@ -53,8 +53,8 @@ community_partitions_plenum = all_partitions - condos
 
 programs = SloppyTree()
 programs.qchem.versions = ('541', '532', '521') 
+programs.gaussian.versions = ('G16B01', 'G16')
 
-"""qqchem: Queues a Q-Chem job in SLURM on Spydur"""
 
 @trap
 def autoslurm_main(args:argparse.Namespace) -> int:
@@ -69,10 +69,10 @@ def autoslurm_main(args:argparse.Namespace) -> int:
 `all` used for inputs, but there are no
 input files (`*.in`) in this directory. Give me something to do!!
             """)
+        data.inputs = inputs
     else:
         data.inputs = args.inputs
     data.email = args.mailuser
-
 
     # Iterate over passed inputs
     for inp in inputs:
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     # Only generates the slurm script and does not submit 
     # the job to SLURM
     parser.add_argument('--dryrun', action='store_true', help=helptext.dryrun)
-
+    parser.add_argument('-o', '--output', type=str, default="")
     parser.add_argument('--verbose', action='store_true',
         help="Be chatty about what is taking place")
     # Temporarily Removed Arguments
@@ -178,7 +178,4 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(f"Escaped or re-raised exception: {e}")
-
-    sys.exit(qqchem_main(args))
-
 
