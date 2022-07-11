@@ -33,6 +33,7 @@ import glob
 # From hpclib
 ###
 import linuxutils
+from   sloppytree import SloppyTree
 import slurmutils
 from   urdecorators import trap
 
@@ -63,10 +64,7 @@ def autoslurm_main(args:argparse.Namespace) -> int:
     # Handles the 'inputs' argument, with a special case 
     # for the 'all' specification
     if 'all' in args.inputs: 
-        # Glob gathers all files in the directory that end in *in
-        if not (inputs := glob.glob("*.in"))
-
-            #Error manually raised since no error message would be given otherwise.
+        if not (inputs := glob.glob("*.in")):
             raise Exception(""" 
 `all` used for inputs, but there are no
 input files (`*.in`) in this directory. Give me something to do!!
@@ -113,7 +111,7 @@ if __name__ == "__main__":
     from autoslurmhelp import helptext
 
     parser = argparse.ArgumentParser(description=helptext.description)
-    parser.add_argument('inputs', nargs='+', type="str", help=helptext.inputs)
+    parser.add_argument('inputs', nargs='+', type=list, help=helptext.inputs)
 
     # Input files specified by the user. The files must be in 
     # the current working directory
@@ -135,25 +133,23 @@ if __name__ == "__main__":
         help=helptext.jobname)
 
     parser.add_argument('-c', '--cputotal', default=24, type=int,
-        choices=(range(50)), help=help.cputotal)
+        choices=(range(50)), help=helptext.cputotal)
 
     parser.add_argument('-m', '--mem', default=380, type=int, help=helptext.mem)
 
-    # Specifies partition to run on, ##You are allowed to change this default!##
     parser.add_argument('-q', '--partition', default='basic', type=str,
         choices=(cluster_data.partitions.keys()), help=helptext.partition)
 
     parser.add_argument('-x', '--exe', default='qchem', type=str,
         choices = programs.keys(), help=helptext.exe)
 
-    # Added quotation marks to the version numbers to avoid a python error.
     parser.add_argument('-v', '--version', default='', type=str, help=helptext.version)
 
     # Only generates the slurm script and does not submit 
     # the job to SLURM
     parser.add_argument('--dryrun', action='store_true', help=helptext.dryrun)
 
-    parser.add_argument('-v', '--verbose', action='store_true',
+    parser.add_argument('--verbose', action='store_true',
         help="Be chatty about what is taking place")
     # Temporarily Removed Arguments
     #parser.add_argument('-t', '--ompthreads', default=12, 
@@ -183,6 +179,6 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Escaped or re-raised exception: {e}")
 
-    return qqchem_main(args)
+    sys.exit(qqchem_main(args))
 
 

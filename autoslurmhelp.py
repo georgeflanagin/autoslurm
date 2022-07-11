@@ -42,19 +42,19 @@ __status__ = 'in progress'
 __license__ = 'MIT'
 
 helptext = SloppyTree()
+helptext.cputotal = "Total number of CPUs to request from SLURM."
 helptext.description = """Automatically generate & queue
 SLURM script(s) for running job(s) on Spydur."""
+helptext.dryrun = "Just build the job script; do not try to run it."
+helptext.exe = "Name of the primary program you are executing."
 helptext.inputs = """Input file name(s) to run with Q-Chem. If more 
 than one input file is provided, each will be submitted 
 separately to the queue. If `all` requested, then all 
 inputs in cwd will be submitted."""
+helptext.jobname = "Different name than <jobname>.in under which to run job?"
 helptext.mailtype = "Send SLURM status updates via email?"
 helptext.mailuser = f"Different email than '{mynetid}@richmond.edu' to send status emails?"
-helptext.jobname = "Different name than <jobname>.in under which to run job?"
-helptext.cputotal = "Total number of CPUs to request from SLURM."
 helptext.mem = "Total memory to request for job, in GB."
 helptext.partition = "Partition/Queue to which job should be submitted."
-helptext.exe = "Name of the primary program you are executing."
 helptext.version = "Version of your primary program to run."
-helptext.dryrun = "Just build the job script; do not try to run it."
 
