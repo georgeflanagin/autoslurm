@@ -141,7 +141,7 @@ if __name__ == "__main__":
         choices=(cluster_data.partitions.keys()), help=helptext.partition)
 
     parser.add_argument('-x', '--exe', default='qchem', type=str,
-        choices = programs.keys(), help=helptext.exe)
+        choices = slurm.keys(), help=helptext.exe)
 
     parser.add_argument('-v', '--version', default='', type=str, help=helptext.version)
 

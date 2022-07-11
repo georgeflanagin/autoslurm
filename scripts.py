@@ -117,3 +117,42 @@ cd $QCSCRATCH
 echo "Finished at `date`"
 """
 
+slurm.gaussian = lambda data : f"""#!/bin/bash -e
+
+#SBATCH --account={data.me}
+#SBATCH --mail-type=ALL
+#SBATCH --mail-user={data.me}@richmond.edu
+#SBATCH --mem={int(data.mem/1024/1024)}
+#SBATCH --ntasks=1
+#SBATCH --cpus-per-task={data.nprocs}
+#SBATCH --partition={myargs.queue}
+#SBATCH --time=0
+
+#SBATCH -o /scratch/{data.me}/{data.jobname}.txt
+#SBATCH -e /scratch/{data.me}/{data.jobname}.err
+
+export DATADIR=/scratch/{data.me}/{data.jobname}
+export SCRATCH=/localscratch/{data.me}
+export BIGSCRATCH=/scratch/{data.me}
+export GAUSS_SCRDIR=/localscratch/{data.me}/{data.jobname}
+
+mkdir -p "$DATADIR"
+mkdir -p "$SCRATCH"
+mkdir -p "$BIGSCRATCH"
+mkdir -p "$GAUSS_SCRDIR"
+
+cd "$SCRATCH"
+
+export g16root={data.g16root}
+source {data.g16root}/g16/bsd/g16.login
+
+echo "I ran on: $SLURM_NODELIST"
+echo "Available memory: `grep MemTotal /proc/meminfo`"
+echo "Available storage: `df -h /localscratch`"
+echo "Starting at `date`"
+
+{data.g16root}/g16/g16 {myargs.inputfile}.com > {myargs.inputfile}.log
+if [ $? ]; then
+fi
+
+"""
