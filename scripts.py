@@ -14,20 +14,9 @@ if sys.version_info < min_py:
     sys.exit(os.EX_SOFTWARE)
 
 ###
-# Other standard distro imports
-###
-import argparse
-import contextlib
-import getpass
-mynetid = getpass.getuser()
-
-###
 # From hpclib
 ###
 from   sloppytree import SloppyTree
-from   dorunrun import dorunrun
-import linuxutils
-from   urdecorators import trap
 
 ###
 # imports and objects that are a part of this project

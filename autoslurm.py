@@ -32,7 +32,6 @@ import glob
 ###
 # From hpclib
 ###
-import linuxutils
 from   sloppytree import SloppyTree
 import slurmutils
 from   urdecorators import trap
