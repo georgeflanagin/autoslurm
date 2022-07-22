@@ -35,6 +35,8 @@ __license__ = 'MIT'
 
 slurm = SloppyTree()
 
+###################################### QCHEM ##########################
+
 slurm.qchem = lambda data : f"""#!/bin/bash -e
 
 #SBATCH  --account={data.user}$
@@ -106,24 +108,61 @@ cd $QCSCRATCH
 echo "Finished at `date`"
 """
 
+################################### GAUSSIAN ##########################
+
 slurm.gaussian = lambda data : f"""#!/bin/bash -e
 
-#SBATCH --account={data.me}
-#SBATCH --mail-type=ALL
-#SBATCH --mail-user={data.me}@richmond.edu
-#SBATCH --mem={int(data.mem/1024/1024)}
-#SBATCH --ntasks=1
-#SBATCH --cpus-per-task={data.nprocs}
-#SBATCH --partition={myargs.queue}
-#SBATCH --time=0
+### Primary SBATCH directives.
 
-#SBATCH -o /scratch/{data.me}/{data.jobname}.txt
-#SBATCH -e /scratch/{data.me}/{data.jobname}.err
+#SBATCH  --account={data.user}
+#SBATCH  --mail-type={data.mailtype}
+#SBATCH  --mail-user={data.email}
+#SBATCH  --job-name={data.jobname}
+#SBATCH  --cpus-per-task={data.cputotal}
+#SBATCH  --output {data.jobname}.tomb
+#SBATCH  -e {data.jobname}.tomb.err
+#SBATCH  --mem={data.mem*1000}M
+#SBATCH  --tasks=1
+#SBATCH  --partition={data.partition}
 
-export DATADIR=/scratch/{data.me}/{data.jobname}
-export SCRATCH=/localscratch/{data.me}
-export BIGSCRATCH=/scratch/{data.me}
-export GAUSS_SCRDIR=/localscratch/{data.me}/{data.jobname}
+#### Set the scratch folder, and the cleanup operation. ####
+
+scratchFolder="$(date +%N)"
+echo "Scratch Folder: ${{scratchFolder}}"
+function cleanup {{
+	
+    cp /localscratch/{data.user}/gaussScratch/${{scratchFolder}}/{data.jobname}.in {os.getcwd()}
+    cp /localscratch/{data.user}/gaussScratch/${{scratchFolder}}/{data.jobname}.out {os.getcwd()}
+    cp /localscratch/{data.user}/gaussScratch/${{scratchFolder}}/{data.jobname}.fchk {os.getcwd()}
+
+    echo "Removing /localscratch/{data.user}/gaussScratch/${{scratchFolder}}"
+    rm -rf "/localscratch/{data.user}/gaussScratch/${{scratchFolder}}"
+}}
+trap cleanup EXIT
+
+#### BEGIN ####
+
+cd $SLURM_SUBMIT_DIR
+echo "I ran on: $SLURM_NODELIST"
+echo "Starting at `date`"
+NAME={data.jobname}
+
+####  Get rid of all the random crap in your path, you don't want it here ###
+export DATADIR={os.getcwd()}
+module purge
+
+#### Set the environment, and give the SCRATCH area a name. ####
+source /usr/local/sw/gauss/gauss{data.version}/g.sh
+
+export GAUSS_SCRDIR="/localscratch/{data.user}/gaussScratch/${{scratchFolder}}"
+mkdir -p $GAUSS_SCRDIR
+cp {os.getcwd()}/{data.jobname}.in $GAUSS_SCRDIR
+cd $GAUSS_SCRDIR
+
+/usr/bin/time -v gauss -slurm -np {data.mpisockets} -nt {data.ompthreads} {data.jobname}.in {data.jobname}.out
+
+#Record keeping
+echo "Finished at `date`"
 
 mkdir -p "$DATADIR"
 mkdir -p "$SCRATCH"
