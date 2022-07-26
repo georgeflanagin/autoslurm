@@ -59,7 +59,7 @@ def fixup_args(args:argparse.Namespace) -> SloppyTree:
     argparse reads the command line.
     """
     global cluster_data
-    data = SloppyTree(dict(args))
+    data = SloppyTree(vars(args))
 
     ###
     # Ensure the version of the program to be run makes some sense.
@@ -112,9 +112,10 @@ def autoslurm_main(args:argparse.Namespace) -> int:
             ".".join(inp.split('.')[:-1]) )
 
         ## CPUs and memory are set here.
-        data.mpisockets = 2 if cputotal > 26 else 1
-        data.ompthreads = cputotal // mpisockets
-        data.mem = min(args.mem, cluster_data.partition.ram)
+        data.mpisockets = 2 if args.cputotal > 26 else 1
+        data.ompthreads = args.cputotal // data.mpisockets
+        print(f"{cluster_data=}")
+        data.mem = min(args.mem, cluster_data[args.partition].ram)
         
         # Generate the SLURM script. To make changes, edit the
         # scripts.py file that is a part of this project.
@@ -125,7 +126,7 @@ def autoslurm_main(args:argparse.Namespace) -> int:
 
         # Prints out the SLURM file to terminal if --dryrun was specified
         if args.dryrun:
-            print(s)
+            print(f"{data=}")
 
         # Runs the calculation otherwise
         else:
@@ -141,7 +142,7 @@ if __name__ == "__main__":
     from autoslurmhelp import helptext
 
     parser = argparse.ArgumentParser(description=helptext.description)
-    parser.add_argument('inputs', nargs='+', type=list, help=helptext.inputs)
+    parser.add_argument('inputs', nargs='+', help=helptext.inputs)
 
     parser.add_argument('-mt', '--mailtype', type=str, default="NONE", 
         choices=('NONE', 'BEGIN', 'END', 'FAIL', 'REQUEUE', 'ALL'), 
@@ -159,7 +160,7 @@ if __name__ == "__main__":
     parser.add_argument('-m', '--mem', default=380, type=int, help=helptext.mem)
 
     parser.add_argument('-q', '--partition', default='basic', type=str,
-        choices=(cluster_data.partitions.keys()), help=helptext.partition)
+        choices=(cluster_data.keys()), help=helptext.partition)
 
     parser.add_argument('-x', '--exe', default='qchem', type=str,
         choices = slurm.keys(), help=helptext.exe)

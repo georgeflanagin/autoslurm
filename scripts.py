@@ -179,7 +179,7 @@ echo "Available memory: `grep MemTotal /proc/meminfo`"
 echo "Available storage: `df -h /localscratch`"
 echo "Starting at `date`"
 
-{data.g16root}/g16/g16 {myargs.inputfile}.com > {myargs.inputfile}.log
+{data.g16root}/g16/g16 {data.inputfile}.com > {data.inputfile}.log
 if [ $? ]; then
 fi
 
