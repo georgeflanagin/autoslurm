@@ -51,7 +51,6 @@ condos = set(('bukach', 'diaz', 'erickson', 'johnson',
                 'parish', 'yang1', 'yang2', 'yangnolin'))
 community_partitions_plenum = all_partitions - condos
 
-
 @trap
 def fixup_args(args:argparse.Namespace) -> SloppyTree:
     """
@@ -59,6 +58,7 @@ def fixup_args(args:argparse.Namespace) -> SloppyTree:
     argparse reads the command line.
     """
     global cluster_data
+    global verbose
     data = SloppyTree(vars(args))
 
     ###
@@ -79,17 +79,22 @@ def fixup_args(args:argparse.Namespace) -> SloppyTree:
     ###
     # glob the input files.
     ###
-    if 'all' in args.inputs:
-        data.inputs = glob.glob(programs[args.exe].inputfiles) 
-    else:
-        x = []
-        data.inputs = x.extend(glob.glob(inp) for inp in args.inputs)
-    
-    if not args.inputs:
+    data.inputs = []
+    my_exe = programs[args.exe]
+    for input_spec in args.inputs:
+        if os.path.isdir(input_spec):
+            data.inputs.extend(glob.glob(os.path.join(input_spec, my_exe.inputfiles)))
+        elif os.path.isfile(input_spec):
+            data.inputs.extend([input_spec])
+        else:
+            data.inputs.extend(glob.glob(input_spec)) 
+
+    if not len(data.inputs):
         print("No input files found.")
         sys.exit(os.EX_DATAERR)
+    
+    verbose and print(f"{data.inputs=}")
         
-    data.inputs = args.inputs
     data.email = args.mailuser
 
     return data
@@ -100,11 +105,14 @@ def autoslurm_main(args:argparse.Namespace) -> int:
     """
     Write a SLURM job file, and optionally submit it.
     """
+    global verbose
     data = fixup_args(args)
+    verbose and print(f"{data=}")
 
     results = []
     # Iterate over passed inputs
     for inp in data.inputs:
+        verbose and print(f"{inp=}")
 
         ## Job Name
         data.jobname = ( args.jobname 
@@ -114,19 +122,25 @@ def autoslurm_main(args:argparse.Namespace) -> int:
         ## CPUs and memory are set here.
         data.mpisockets = 2 if args.cputotal > 26 else 1
         data.ompthreads = args.cputotal // data.mpisockets
-        print(f"{cluster_data=}")
+        verbose and print(f"{cluster_data=}")
         data.mem = min(args.mem, cluster_data[args.partition].ram)
         
         # Generate the SLURM script. To make changes, edit the
         # scripts.py file that is a part of this project.
-        with open(f"{data.jobname}.slurm", 'w+') as f:
-            s = slurm[data.exe](data)
-            # Writes the SLURM string to the file
-            f.write(s)
+        s = slurm[data.exe](data)
+        try:
+            with open(f"{data.jobname}.slurm", 'w+') as f:
+                # Writes the SLURM string to the file
+                f.write(s)
+        except PermissionError as e:
+            print(f"""
+                Cannot open {data.jobname}.slurm for writing. 
+                You will have to cut and paste from the screen.""")
+            args.dryrun = True
 
         # Prints out the SLURM file to terminal if --dryrun was specified
         if args.dryrun:
-            print(f"{data=}")
+            print(f"{s}")
 
         # Runs the calculation otherwise
         else:
