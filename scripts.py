@@ -147,12 +147,10 @@ echo "I ran on: $SLURM_NODELIST"
 echo "Starting at `date`"
 NAME={data.jobname}
 
-####  Get rid of all the random crap in your path, you don't want it here ###
 export DATADIR={os.getcwd()}
 module purge
 
-#### Set the environment, and give the SCRATCH area a name. ####
-source /usr/local/sw/gauss/gauss{data.version}/g.sh
+source /usr/local/sw/gauss/gauss{data.version}/g16.sh
 
 export GAUSS_SCRDIR="/localscratch/{data.user}/gaussScratch/${{scratchFolder}}"
 mkdir -p $GAUSS_SCRDIR

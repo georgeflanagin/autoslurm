@@ -47,6 +47,11 @@ programs = SloppyTree()
 #               found. There is considerable variety here.
 ###########################################################
 
+programs.date.inputfiles = '*.txt'
+programs.date.versions = ("",)
+programs.date.trunk = '/usr/bin'
+for v in programs.date.versions:
+    programs.date.root[v] = os.path.join(programs.date.trunk, 'date')
 
 programs.qchem.inputfiles = '*.in'
 programs.qchem.versions = ('541', '53', ) 

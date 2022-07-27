@@ -59,7 +59,10 @@ def fixup_args(args:argparse.Namespace) -> SloppyTree:
     """
     global cluster_data
     global verbose
+    global mynetid
+
     data = SloppyTree(vars(args))
+    data.user = mynetid
 
     ###
     # Ensure the version of the program to be run makes some sense.
@@ -112,6 +115,7 @@ def autoslurm_main(args:argparse.Namespace) -> int:
     results = []
     # Iterate over passed inputs
     for inp in data.inputs:
+        data.inp = inp
         verbose and print(f"{inp=}")
 
         ## Job Name
@@ -156,13 +160,14 @@ if __name__ == "__main__":
     from autoslurmhelp import helptext
 
     parser = argparse.ArgumentParser(description=helptext.description)
-    parser.add_argument('inputs', nargs='+', help=helptext.inputs)
+    parser.add_argument('inputs', nargs='+', default=[os.getcwd()], help=helptext.inputs)
 
     parser.add_argument('-mt', '--mailtype', type=str, default="NONE", 
         choices=('NONE', 'BEGIN', 'END', 'FAIL', 'REQUEUE', 'ALL'), 
         help=helptext.mailtype)
 
-    parser.add_argument('-mu', '--mailuser', type=str, default=mynetid, 
+    parser.add_argument('-mu', '--mailuser', type=str, 
+        default=f"{mynetid}@richmond.edu", 
         help=helptext.mailuser)
 
     parser.add_argument('-j', '--jobname', default=None, type=str,
@@ -176,7 +181,7 @@ if __name__ == "__main__":
     parser.add_argument('-q', '--partition', default='basic', type=str,
         choices=(cluster_data.keys()), help=helptext.partition)
 
-    parser.add_argument('-x', '--exe', default='qchem', type=str,
+    parser.add_argument('-x', '--exe', default='date', type=str,
         choices = slurm.keys(), help=helptext.exe)
 
     parser.add_argument('-v', '--version', default='', type=str, help=helptext.version)
