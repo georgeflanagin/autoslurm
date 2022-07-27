@@ -40,28 +40,22 @@ programs = SloppyTree()
 #   The subkeys are:
 #       inputfiles -- the pattern for the input file names
 #       versions -- the names of the versions that are installed.
-#       trunk -- the TLD where all the software for all the versions
-#               is located.
-#       root -- the subdirectory where the main executables are
-#               found. There is considerable variety here.
+#       exe -- the location of the primary executable.
 ###########################################################
 
 programs.date.inputfiles = '*.txt'
 programs.date.versions = ("",)
-programs.date.trunk = '/usr/bin'
 for v in programs.date.versions:
-    programs.date.root[v] = os.path.join(programs.date.trunk, 'date')
+    programs.date.exe[v] = '/usr/bin/date'
 
 programs.qchem.inputfiles = '*.in'
 programs.qchem.versions = ('541', '53', ) 
-programs.qchem.trunk = '/usr/local/sw/qchem/'
 for v in programs.qchem.versions: 
-    programs.qchem.root[v] = os.path.join(programs.qchem.trunk, f"qchem{v}")
+    programs.qchem.exe[v] = f"/usr/local/sw/qchem/qchem{v}/qchem"
 
 programs.gaussian.inputfiles = '*.com'
 programs.gaussian.versions = ('16B01', )
-programs.gaussian.trunk = '/usr/local/sw/gaussian'
 for v in programs.gaussian.versions:
-    programs.gaussian.root[v] = os.path.join(programs.gaussian.trunk, f"g{v}/g16")
+    programs.gaussian.exe[v] = f"/usr/local/sw/gaussian/g{v}/g16/g16"
 
 

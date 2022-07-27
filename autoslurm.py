@@ -112,6 +112,7 @@ def fixup_args(args:argparse.Namespace) -> SloppyTree:
         sys.exit(os.EX_NOINPUT)
         
     data.email = args.mailuser
+    data.program = my_exe.exe[data.version]
 
     return data
 

@@ -35,10 +35,33 @@ __license__ = 'MIT'
 
 slurm = SloppyTree()
 
-###################################### QCHEM ##########################
+###################################### DATE ##########################
 
 slurm.date = lambda data : f"""#!/bin/bash -e
+#SBATCH  --account={data.user}$
+#SBATCH  --mail-type={data.mailtype}
+#SBATCH  --mail-user={data.email}
+#SBATCH  --job-name={data.jobname}
+#SBATCH  --cpus-per-task={data.cputotal}
+#SBATCH  --output {data.jobname}.tomb
+#SBATCH  -e {data.jobname}.tomb.err
+#SBATCH  --mem={data.mem*1000}M
+#SBATCH  --tasks=1
+#SBATCH  --partition={data.partition}
+
+cd $SLURM_SUBMIT_DIR
+echo "I ran on: $SLURM_NODELIST"
+echo "Starting at `date`"
+
+NAME={data.jobname}
+
+/usr/bin/time -v {data.program} 
+
+echo "Finished at `date`"
+
 """
+
+##################################### QCHEM ##########################
 
 slurm.qchem = lambda data : f"""#!/bin/bash -e
 
