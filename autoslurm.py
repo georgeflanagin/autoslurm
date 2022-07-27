@@ -32,6 +32,7 @@ import glob
 ###
 # From hpclib
 ###
+import linuxutils
 from   sloppytree import SloppyTree
 import slurmutils
 from   urdecorators import trap
@@ -80,10 +81,22 @@ def fixup_args(args:argparse.Namespace) -> SloppyTree:
         pass
 
     ###
-    # glob the input files.
+    # glob the input files. Note the two different cases where
+    # we check if there are any file. The first time, we see
+    # if the user has *supplied* any, and the second time
+    # we see if this program has *found* any.
     ###
     data.inputs = []
     my_exe = programs[args.exe]
+
+    if not args.inputs and not os.getenv('AUTOSLURM_DEFAULT_DIR'):
+        print("No target locations given.")
+        sys.exit(os.EX_NOINPUT)
+    else:
+        args.inputs = [os.getenv('AUTOSLURM_DEFAULT_DIR')]
+
+    data.defaultdir = os.getenv('AUTOSLURM_DEFAULT_DIR')
+        
     for input_spec in args.inputs:
         if os.path.isdir(input_spec):
             data.inputs.extend(glob.glob(os.path.join(input_spec, my_exe.inputfiles)))
@@ -92,11 +105,11 @@ def fixup_args(args:argparse.Namespace) -> SloppyTree:
         else:
             data.inputs.extend(glob.glob(input_spec)) 
 
-    if not len(data.inputs):
+    if data.inputs:
+        verbose and print(f"{data.inputs=}")
+    else:
         print("No input files found.")
-        sys.exit(os.EX_DATAERR)
-    
-    verbose and print(f"{data.inputs=}")
+        sys.exit(os.EX_NOINPUT)
         
     data.email = args.mailuser
 
@@ -121,7 +134,7 @@ def autoslurm_main(args:argparse.Namespace) -> int:
         ## Job Name
         data.jobname = ( args.jobname 
             if args.jobname else 
-            ".".join(inp.split('.')[:-1]) )
+            ".".join(os.path.basename(inp).split('.')[:-1]) )
 
         ## CPUs and memory are set here.
         data.mpisockets = 2 if args.cputotal > 26 else 1
@@ -133,12 +146,12 @@ def autoslurm_main(args:argparse.Namespace) -> int:
         # scripts.py file that is a part of this project.
         s = slurm[data.exe](data)
         try:
-            with open(f"{data.jobname}.slurm", 'w+') as f:
+            with open(f"{data.defaultdir}/{data.jobname}.slurm", 'w+') as f:
                 # Writes the SLURM string to the file
                 f.write(s)
         except PermissionError as e:
             print(f"""
-                Cannot open {data.jobname}.slurm for writing. 
+                Cannot open {data.defaultdir}/{data.jobname}.slurm for writing. 
                 You will have to cut and paste from the screen.""")
             args.dryrun = True
 
@@ -160,7 +173,7 @@ if __name__ == "__main__":
     from autoslurmhelp import helptext
 
     parser = argparse.ArgumentParser(description=helptext.description)
-    parser.add_argument('inputs', nargs='+', default=[os.getcwd()], help=helptext.inputs)
+    parser.add_argument('inputs', nargs='*', help=helptext.inputs)
 
     parser.add_argument('-mt', '--mailtype', type=str, default="NONE", 
         choices=('NONE', 'BEGIN', 'END', 'FAIL', 'REQUEUE', 'ALL'), 
@@ -170,7 +183,7 @@ if __name__ == "__main__":
         default=f"{mynetid}@richmond.edu", 
         help=helptext.mailuser)
 
-    parser.add_argument('-j', '--jobname', default=None, type=str,
+    parser.add_argument('-j', '--jobname', default="", type=str,
         help=helptext.jobname)
 
     parser.add_argument('-c', '--cputotal', default=24, type=int,
@@ -202,6 +215,7 @@ if __name__ == "__main__":
     ######################################################################
 
     myargs = parser.parse_args()
+    linuxutils.dump_cmdline(myargs)
     verbose = myargs.verbose
 
     try:

@@ -3,7 +3,6 @@
 Information about the programs installed on Spydur.
 """
 
-
 min_py = (3, 8)
 
 ###

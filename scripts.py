@@ -37,6 +37,9 @@ slurm = SloppyTree()
 
 ###################################### QCHEM ##########################
 
+slurm.date = lambda data : f"""#!/bin/bash -e
+"""
+
 slurm.qchem = lambda data : f"""#!/bin/bash -e
 
 #SBATCH  --account={data.user}$
