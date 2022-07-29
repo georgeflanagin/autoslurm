@@ -40,21 +40,29 @@ programs = SloppyTree()
 #   The subkeys are:
 #       inputfiles -- the pattern for the input file names
 #       versions -- the names of the versions that are installed.
+#       cpus -- reasonable maximum cpus
+#       mem -- reasonable maximum GB of memory
 #       exe -- the location of the primary executable.
 ###########################################################
 
 programs.date.inputfiles = '*.txt'
 programs.date.versions = ("",)
+programs.date.cpus = 1
+programs.date.mem = 1
 for v in programs.date.versions:
     programs.date.exe[v] = '/usr/bin/date'
 
 programs.qchem.inputfiles = '*.in'
 programs.qchem.versions = ('541', '53', ) 
+programs.qchem.cpus = 20
+programs.qchem.mem = 100
 for v in programs.qchem.versions: 
     programs.qchem.exe[v] = f"/usr/local/sw/qchem/qchem{v}/qchem"
 
 programs.gaussian.inputfiles = '*.com'
 programs.gaussian.versions = ('16B01', )
+programs.gaussian.cpus = 16
+programs.gaussian.mem = 32
 for v in programs.gaussian.versions:
     programs.gaussian.exe[v] = f"/usr/local/sw/gaussian/g{v}/g16/g16"
 

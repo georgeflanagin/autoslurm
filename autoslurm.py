@@ -32,6 +32,7 @@ import glob
 ###
 # From hpclib
 ###
+from   dorunrun import dorunrun
 import linuxutils
 from   sloppytree import SloppyTree
 import slurmutils
@@ -80,12 +81,7 @@ def fixup_args(args:argparse.Namespace) -> SloppyTree:
         # data.version does not need to be changed.
         pass
 
-    ###
-    # glob the input files. Note the two different cases where
-    # we check if there are any file. The first time, we see
-    # if the user has *supplied* any, and the second time
-    # we see if this program has *found* any.
-    ###
+    data.email = args.mailuser
     data.inputs = []
     my_exe = programs[args.exe]
 
@@ -97,6 +93,12 @@ def fixup_args(args:argparse.Namespace) -> SloppyTree:
 
     data.defaultdir = os.getenv('AUTOSLURM_DEFAULT_DIR')
         
+    ###
+    # glob the input files. Note the two different cases where
+    # we check if there are any file. The first time, we see
+    # if the user has *supplied* any, and the second time
+    # we see if this program has *found* any.
+    ###
     for input_spec in args.inputs:
         if os.path.isdir(input_spec):
             data.inputs.extend(glob.glob(os.path.join(input_spec, my_exe.inputfiles)))
@@ -111,8 +113,16 @@ def fixup_args(args:argparse.Namespace) -> SloppyTree:
         print("No input files found.")
         sys.exit(os.EX_NOINPUT)
         
-    data.email = args.mailuser
     data.program = my_exe.exe[data.version]
+
+    ###
+    # If --force was given, then we will do what the user asks, subject
+    # to the constraints of the cluster. Otherwise, we will take the advice
+    # of the programs' data suggestions.
+    ###
+    if not args.force:
+        data.cputotal = min(data.cputotal, my_exe.cpus)
+        data.mem = min(data.mem, my_exe.mem)
 
     return data
 
@@ -190,7 +200,9 @@ if __name__ == "__main__":
     parser.add_argument('-c', '--cputotal', default=24, type=int,
         choices=(range(50)), help=helptext.cputotal)
 
-    parser.add_argument('-m', '--mem', default=380, type=int, help=helptext.mem)
+    parser.add_argument('--force', action='store_true', help=argparse.SUPPRESS)
+
+    parser.add_argument('-m', '--mem', default=32, type=int, help=helptext.mem)
 
     parser.add_argument('-q', '--partition', default='basic', type=str,
         choices=(cluster_data.keys()), help=helptext.partition)

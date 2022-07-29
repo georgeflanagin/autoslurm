@@ -173,38 +173,14 @@ echo "I ran on: $SLURM_NODELIST"
 echo "Starting at `date`"
 NAME={data.jobname}
 
-export DATADIR={os.getcwd()}
-module purge
-
-source /usr/local/sw/gauss/gauss{data.version}/g16.sh
+export DATADIR={data.defaultdir}
 
 export GAUSS_SCRDIR="/localscratch/{data.user}/gaussScratch/${{scratchFolder}}"
 mkdir -p $GAUSS_SCRDIR
-cp {os.getcwd()}/{data.jobname}.in $GAUSS_SCRDIR
+cp {data.defaultdir}/{data.jobname}.in $GAUSS_SCRDIR
 cd $GAUSS_SCRDIR
 
-/usr/bin/time -v gauss -slurm -np {data.mpisockets} -nt {data.ompthreads} {data.jobname}.in {data.jobname}.out
+{data.program} {data.inp} > {data.inp}.log
 
-#Record keeping
 echo "Finished at `date`"
-
-mkdir -p "$DATADIR"
-mkdir -p "$SCRATCH"
-mkdir -p "$BIGSCRATCH"
-mkdir -p "$GAUSS_SCRDIR"
-
-cd "$SCRATCH"
-
-export g16root={data.g16root}
-source {data.g16root}/g16/bsd/g16.login
-
-echo "I ran on: $SLURM_NODELIST"
-echo "Available memory: `grep MemTotal /proc/meminfo`"
-echo "Available storage: `df -h /localscratch`"
-echo "Starting at `date`"
-
-{data.g16root}/g16/g16 {data.inputfile}.com > {data.inputfile}.log
-if [ $? ]; then
-fi
-
 """
