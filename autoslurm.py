@@ -184,7 +184,24 @@ if __name__ == "__main__":
     from autoslurmhelp import helptext
 
     parser = argparse.ArgumentParser(description=helptext.description)
+
+    ###
+    # These arguments set operational flags. --force and --auto are currently
+    # undocumented and hidden from casual view. 
+    ###
     parser.add_argument('inputs', nargs='*', help=helptext.inputs)
+    parser.add_argument('--auto', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--force', action='store_true', help=argparse.SUPPRESS)
+    parser.add_argument('--dryrun', action='store_true', help=helptext.dryrun)
+
+
+    parser.add_argument('-c', '--cputotal', default=24, type=int,
+        choices=(range(1,51)), help=helptext.cputotal)
+
+    parser.add_argument('-j', '--jobname', default="", type=str,
+        help=helptext.jobname)
+
+    parser.add_argument('-m', '--mem', default=32, type=int, help=helptext.mem)
 
     parser.add_argument('-mt', '--mailtype', type=str, default="NONE", 
         choices=('NONE', 'BEGIN', 'END', 'FAIL', 'REQUEUE', 'ALL'), 
@@ -194,15 +211,7 @@ if __name__ == "__main__":
         default=f"{mynetid}@richmond.edu", 
         help=helptext.mailuser)
 
-    parser.add_argument('-j', '--jobname', default="", type=str,
-        help=helptext.jobname)
-
-    parser.add_argument('-c', '--cputotal', default=24, type=int,
-        choices=(range(50)), help=helptext.cputotal)
-
-    parser.add_argument('--force', action='store_true', help=argparse.SUPPRESS)
-
-    parser.add_argument('-m', '--mem', default=32, type=int, help=helptext.mem)
+    parser.add_argument('-o', '--output', type=str, default="")
 
     parser.add_argument('-q', '--partition', default='basic', type=str,
         choices=(cluster_data.keys()), help=helptext.partition)
@@ -211,10 +220,6 @@ if __name__ == "__main__":
         choices = slurm.keys(), help=helptext.exe)
 
     parser.add_argument('-v', '--version', default='', type=str, help=helptext.version)
-
-    parser.add_argument('--dryrun', action='store_true', help=helptext.dryrun)
-
-    parser.add_argument('-o', '--output', type=str, default="")
 
     parser.add_argument('--verbose', action='store_true',
         help="Be chatty about what is taking place")
@@ -228,6 +233,7 @@ if __name__ == "__main__":
     ######################################################################
 
     myargs = parser.parse_args()
+    myargs.exe = myargs.exe.lower()
     linuxutils.dump_cmdline(myargs)
     verbose = myargs.verbose
 

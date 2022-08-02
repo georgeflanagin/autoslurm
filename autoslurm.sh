@@ -1,6 +1,6 @@
 autoslurm()
 {
-    export PYTHONPATH=/usr/local/sw/hpclib
+    export PYTHONPATH=/usr/local/sw/hpclib.dev
     # Instead of using $OLDPWD as the location we came from to run
     # autoslurm, let's set an environment variable so that we can
     # know that this shell function launched autoslurm.
