@@ -45,12 +45,12 @@ programs = SloppyTree()
 #       exe -- the location of the primary executable.
 ###########################################################
 
-programs.date.inputfiles = '*.txt'
-programs.date.versions = ("",)
-programs.date.cpus = 1
-programs.date.mem = 1
-for v in programs.date.versions:
-    programs.date.exe[v] = '/usr/bin/date'
+programs.amber.inputfiles = "*.inpcrd"
+programs.amber.versions = ('20', )
+programs.amber.cpus = 10
+programs.amber.mem = 50
+for v in programs.amber.versions:
+    programs.amber.exe[v] = f'/usr/local/sw/amber/amber{v}/amber.sh'
 
 programs.qchem.inputfiles = '*.in'
 programs.qchem.versions = ('541', '53', ) 

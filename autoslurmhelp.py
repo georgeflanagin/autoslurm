@@ -47,15 +47,20 @@ Total number of CPUs to request from SLURM. Keep in mind that
 SLURM uses the term 'cpu' to mean 'core' in the current 
 vernacular. 
 """
+
 helptext.description = """
-Automatically generate & queue SLURM script(s) for running job(s) on this cluster.
+Automatically generate & queue SLURM script(s) for running 
+job(s) on this cluster.
 """
+
 helptext.dryrun = """
 Just build the job script; do not try to run it. Note that if
 autoslurm cannot write the slurm script, it will treat it as 
 a dryrun, except that the script is echoed to the screen.
 """
+
 helptext.exe = "Name of the primary program you are executing."
+
 helptext.inputs = """
 Data file spec(s) for the program you want to run. If more 
 than one input file spec is provided, each will be submitted 
@@ -64,17 +69,29 @@ the directory is searched for files with the right suffixes.
 If the file spec is a file, it will be assumed to be a data input 
 file regardless of its name. Otherwise, the spec is globbed.
 """
+
 helptext.jobname = "Different name than <jobname>.in under which to run job."
+
 helptext.mailtype = "Send SLURM status updates via email."
+
 helptext.mailuser = f"""
 By default, your email address ({mynetid}@richmond.edu) will 
 receive any emails. You can send them elsewhere.
 """
 helptext.mem = "Total memory to request for job, in GB."
+
 helptext.partition = """
 Partition/Queue to which job should be submitted. Note that on
 Spydur, your job might be relocated before it begins to run.
 """
+
+helptext.time = """
+The maximum run time for each script that autoslurm creates.
+The unit of measure is hours. The default is the limit imposed 
+in the configuration of the cluster. Note that this is not
+infinite, but it is a long time.
+"""
+
 helptext.version = """
 Version of your primary program to run. If the version is 
 omitted, then the latest version is assumed, and versions 

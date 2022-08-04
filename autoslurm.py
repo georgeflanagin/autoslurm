@@ -67,6 +67,28 @@ def fixup_args(args:argparse.Namespace) -> SloppyTree:
     data.user = mynetid
 
     ###
+    # Determine the exe value if --auto has been used.
+    ###
+    found = {}
+    defdir = os.getenv('AUTOSLURM_DEFAULT_DIR')
+    if data.auto:
+        for prog in programs.keys(): 
+            found[prog] = ( True 
+                if len(glob.glob(os.path.join(defdir, programs[prog].inputfiles))) 
+                else False )
+
+    n = sum(1 for _ in found if found[_] is True)
+    if n > 1:
+        print(f"{defdir} contains more than one type of program input file.")
+        print("--auto will not work here.")
+        sys.exit(os.EX_CONFIG)
+    elif n == 1: 
+        data.exe = myargs.exe = [ _ for _ in found if found[_] is True ][0]
+    else:
+        print(f"{defdir} contains no files autoslurm recognizes.")
+        sys.exit(os.EX_NOINPUT)
+
+    ###
     # Ensure the version of the program to be run makes some sense.
     # If no version is given, assume that the latest version is
     # the one to use, and assume the largest version number is
@@ -123,6 +145,12 @@ def fixup_args(args:argparse.Namespace) -> SloppyTree:
     if not args.force:
         data.cputotal = min(data.cputotal, my_exe.cpus)
         data.mem = min(data.mem, my_exe.mem)
+
+    ###
+    # Last thing to do: convert a number of hours to a time format
+    # that SLURM understands.
+    ###
+    data.time = slurmutils.hours_to_hms(data.time) if data.time else "30-00:00:00" 
 
     return data
 
@@ -216,6 +244,9 @@ if __name__ == "__main__":
     parser.add_argument('-q', '--partition', default='basic', type=str,
         choices=(cluster_data.keys()), help=helptext.partition)
 
+    parser.add_argument('-t', '--time', default=0, type=float,
+        help=helptext.time)
+
     parser.add_argument('-x', '--exe', default='date', type=str,
         choices = slurm.keys(), help=helptext.exe)
 
@@ -234,7 +265,7 @@ if __name__ == "__main__":
 
     myargs = parser.parse_args()
     myargs.exe = myargs.exe.lower()
-    linuxutils.dump_cmdline(myargs)
+    linuxutils.dump_cmdline(myargs, split_it=True)
     verbose = myargs.verbose
 
     try:
